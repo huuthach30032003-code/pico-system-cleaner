@@ -1,8 +1,11 @@
-# --- ĐOẠN XIN QUYỀN ADMIN CHỐNG LỖI ---
+# --- ĐOẠN XIN QUYỀN ADMIN ---
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     $url = 'https://raw.githubusercontent.com/huuthach30032003-code/pico-system-cleaner/refs/heads/main/optimize.ps1'
-    $cmd = "{ [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex (iwr '$url' -UseBasicParsing).Content }"
-    Start-Process powershell.exe -ArgumentList "-NoP", "-Exec", "Bypass", "-NoExit", "-Command", $cmd -Verb RunAs
+    
+    # Thêm dấu & trước ngoặc nhọn để ép Windows CHẠY lệnh thay vì chỉ in ra
+    $cmd = "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex (iwr '$url' -UseBasicParsing).Content }"
+    
+    Start-Process powershell.exe -ArgumentList "-NoP -Exec Bypass -NoExit -Command `"$cmd`"" -Verb RunAs
     exit
 }
 
