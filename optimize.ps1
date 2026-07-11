@@ -65,7 +65,7 @@ function Write-Hacker {
 Write-Host "`n       .───────────────.       " -ForegroundColor Cyan
 Write-Host "       │  ^   ^  │       " -ForegroundColor Cyan
 Write-Host "       '───────────────'       " -ForegroundColor Cyan
-Write-Host "        CYBER-CLEANER v3.5`n" -ForegroundColor Yellow
+Write-Host "         CYBER-CLEANER v3.5`n" -ForegroundColor Yellow
 
 Write-Hacker "[-] Ket noi den he thong loi... THANH CONG." "DarkGray"
 Start-Sleep -Milliseconds 200
@@ -104,7 +104,20 @@ powercfg -setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
 Write-Hacker "[-] Giai phong khong gian WinSxS (Vui long doi)..." "Yellow"
 dism /online /cleanup-image /startcomponentcleanup /resetbase | Out-Null
 
-# 4. HOÀN TẤT & BÁO CÁO CỰC NGẦU
+# 4. ĐOẠN XÓA DẤU VẾT LỊCH SỬ HỘP THOẠI RUN (ĐƯỢC ĐƯA LÊN TRƯỚC)
+Write-Host "`n[!] Dang xoa dau vet lich su hop thoai Run..." -ForegroundColor Cyan
+
+# Xóa sạch các giá trị lịch sử trong Registry
+Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU" -Name * -ErrorAction SilentlyContinue
+Remove-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU\*" -Force -ErrorAction SilentlyContinue
+
+# Ép Windows Explorer khởi động lại để áp dụng thay đổi ngay lập tức
+Write-Host " -> Dang lam moi he thong (Man hinh se nhay nhe mot cai)..." -ForegroundColor Yellow
+Stop-Process -Name explorer -Force
+
+Write-Host " -> Da xoa sach lich su RunMRU! Khong de lai dau vet." -ForegroundColor Green
+
+# 5. HOÀN TẤT & BÁO CÁO CỰC NGẦU
 Write-Host "`n"
 Write-Hacker "[=========================================]" "Green"
 Write-Hacker "[+] TOI UU HOA HOAN TAT! HE THONG DA SACH." "Green"
@@ -114,20 +127,7 @@ Write-Hacker "[=========================================]" "Green"
 [System.Console]::Beep(1200, 100)
 [System.Console]::Beep(1500, 300)
 
+Write-Host "`nNhan phim bat ky de rut lui..." -ForegroundColor DarkGray
 # Bật lại con trỏ chuột trước khi thoát
 [console]::CursorVisible = $true
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-
-# --- THÊM ĐOẠN NÀY VÀO CUỐI FILE OPTIMIZE.PS1 ---
-
-Write-Host "`n[!] Dang xoa dau vet lich su hop thoai Run..." -ForegroundColor Cyan
-
-# 1. Xóa sạch các giá trị lịch sử trong Registry
-Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU" -Name * -ErrorAction SilentlyContinue
-Remove-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU\*" -Force -ErrorAction SilentlyContinue
-
-# 2. Ép Windows Explorer khoi dong lai de ap dung thay doi ngay lap tuc
-Write-Host " -> Dang lam moi he thong (Man hinh se nhay nhe mot cai)..." -ForegroundColor Yellow
-Stop-Process -Name explorer -Force
-
-Write-Host " -> Da xoa sach lich su RunMRU! Khong de lai dau vet." -ForegroundColor Green
