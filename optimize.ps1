@@ -42,10 +42,10 @@ foreach ($frame in $eyeFrames) {
     Write-Host "    [ Đang khởi động AI Core... ]" -ForegroundColor DarkGray
     
     # Phát tiếng click nhẹ nhàng cho mỗi khung hình
-    [System.Console]::Beep(800, 10)
+    [System.Console]::Beep(500, 5)
     Start-Sleep -Milliseconds 300
 }
-Start-Sleep -Milliseconds 500
+Start-Sleep -Milliseconds 2
 
 # Xóa màn hình boot để chuyển sang giao diện dọn dẹp
 Clear-Host
