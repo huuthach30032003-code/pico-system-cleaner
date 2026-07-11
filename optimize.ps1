@@ -64,22 +64,42 @@ function Write-Hacker {
     Write-Host ""
 }
 
-# 3. CHẠY HIỆU ỨNG VÀ DỌN DẸP THỰC TẾ
+# 3. CHẠY HIỆU ỨNG VÀ DỌN DẸP THỰC TẾ CHI TIẾT
 Write-Host "`n       .───────────────.       " -ForegroundColor Cyan
 Write-Host "       │  ^   ^  │       " -ForegroundColor Cyan
 Write-Host "       '───────────────'       " -ForegroundColor Cyan
-Write-Host "        CYBER-CLEANER v3.0`n" -ForegroundColor Yellow
+Write-Host "        CYBER-CLEANER v3.5`n" -ForegroundColor Yellow
 
 Write-Hacker "[-] Ket noi den he thong loi... THANH CONG." "DarkGray"
-Start-Sleep -Milliseconds 300
+Start-Sleep -Milliseconds 200
 
-Write-Hacker "[-] Dang quet file tam (Temp)..." "Cyan"
-Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+# Hàm tối ưu xóa file nhanh và hiển thị chi tiết
+function Clean-Folder-Detailed ($FolderPath) {
+    if (Test-Path $FolderPath) {
+        Write-Host "[*] Dang quet: $FolderPath" -ForegroundColor Yellow
+        # Lấy toàn bộ file và thư mục con bên trong
+        $files = Get-ChildItem -Path $FolderPath -Recurse -ErrorAction SilentlyContinue
+        
+        foreach ($file in $files) {
+            # Hiển thị tên file đang xử lý ra màn hình theo thời gian thực
+            Write-Host " -> DELETING: $($file.FullName)" -ForegroundColor DarkGray
+            
+            # Xóa file/thư mục ngay lập tức
+            Remove-Item -Path $file.FullName -Force -Recurse -ErrorAction SilentlyContinue
+        }
+    }
+}
 
-Write-Hacker "[-] Dang tieu huy Thung rac..." "Cyan"
+Write-Host "`n[!] TIEN HANH XOA TAP TIN TAM THOI:" -ForegroundColor Cyan
+Clean-Folder-Detailed -FolderPath "$env:TEMP\*"
+Clean-Folder-Detailed -FolderPath "C:\Windows\Temp\*"
+
+Write-Host "`n[!] TIEN HANH TIEU HUY THUNG RAC:" -ForegroundColor Cyan
+# Thùng rác Windows có cơ chế quản lý riêng, lệnh này tự tối ưu rất nhanh
 Clear-RecycleBin -Force -ErrorAction SilentlyContinue
+Write-Host " -> Thung rac da duoc don sach se!" -ForegroundColor Green
 
+Write-Host "`n[!] TOI UU HE THONG:" -ForegroundColor Cyan
 Write-Hacker "[-] Ep xung hieu nang & Toi uu Registry..." "Cyan"
 Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Value 0
 powercfg -setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
