@@ -1,77 +1,95 @@
-# --- ĐOẠN XIN QUYỀN ADMIN (DÀNH RIÊNG CHO CHẠY TỪ WEB) ---
+# --- ĐOẠN XIN QUYỀN ADMIN CHỐNG LỖI ---
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    # Khai báo lại link tải code để PowerShell Admin biết đường chạy tiếp
-    $url = 'https://bit.ly/4yblONn'
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -NoExit -Command `"iex (iwr '$url' -UseBasicParsing).Content`"" -Verb RunAs
+    $url = 'https://raw.githubusercontent.com/huuthach30032003-code/pico-system-cleaner/refs/heads/main/optimize.ps1'
+    $cmd = "{ [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex (iwr '$url' -UseBasicParsing).Content }"
+    Start-Process powershell.exe -ArgumentList "-NoP", "-Exec", "Bypass", "-NoExit", "-Command", $cmd -Verb RunAs
     exit
 }
 
-$host.UI.RawUI.WindowTitle = "System Optimization Log - Admin Process"
+$host.UI.RawUI.WindowTitle = "CYBER-CLEANER: AI Module"
+# Giấu con trỏ chuột nhấp nháy đi để màn hình trông giống màn OLED thực thụ
+[console]::CursorVisible = $false
 Clear-Host
-Write-Host "=================================================" -ForegroundColor Cyan
-Write-Host "      HE THONG DANG DON DEP VA TOI UU PRO        " -ForegroundColor Yellow
-Write-Host "=================================================" -ForegroundColor Cyan
 
-$log = New-Object System.Collections.Generic.List[string]
+# 1. HIỆU ỨNG MÀN HÌNH OLED ESP32 (ANIMATION ĐÔI MẮT)
+$eyeFrames = @(
+    "  O   O  ", # Nhìn thẳng
+    "  -   -  ", # Chớp mắt
+    "  O   O  ", # Nhìn thẳng
+    " O   O   ", # Nhìn sang trái
+    "  O   O  ", # Nhìn thẳng
+    "   O   O ", # Nhìn sang phải
+    "  O   O  ", # Nhìn thẳng
+    "  -   -  ", # Chớp mắt
+    "  ^   ^  "  # Vui vẻ (Sẵn sàng làm việc)
+)
 
-function Add-Log($msg) {
-    Write-Host "[*] $msg" -ForegroundColor Cyan
-    $log.Add("[$(Get-Date -Format 'HH:mm:ss')] $msg")
+Write-Host "`n"
+foreach ($frame in $eyeFrames) {
+    # Đưa con trỏ về cùng một vị trí để vẽ đè lên (tạo chuyển động)
+    [console]::SetCursorPosition(0, 2)
+    Write-Host "       .───────────────.       " -ForegroundColor Cyan
+    Write-Host "       │$frame│       " -ForegroundColor Cyan
+    Write-Host "       '───────────────'       " -ForegroundColor Cyan
+    Write-Host "    [ Đang khởi động AI Core... ]" -ForegroundColor DarkGray
+    
+    # Phát tiếng click nhẹ nhàng cho mỗi khung hình
+    [System.Console]::Beep(800, 10)
+    Start-Sleep -Milliseconds 300
+}
+Start-Sleep -Milliseconds 500
+
+# Xóa màn hình boot để chuyển sang giao diện dọn dẹp
+Clear-Host
+
+# 2. HÀM TẠO HIỆU ỨNG GÕ CHỮ KIỂU HACKER KÈM ÂM THANH
+function Write-Hacker {
+    param(
+        [string]$Text, 
+        [string]$Color = "Green"
+    )
+    foreach ($char in $Text.ToCharArray()) {
+        Write-Host $char -NoNewline -ForegroundColor $Color
+        [System.Console]::Beep(500, 15)
+        Start-Sleep -Milliseconds 15
+    }
+    Write-Host ""
 }
 
-# ---------------------------------------------------------
-# 1. DỌN RÁC Ổ CỨNG (Giải phóng hàng GB SSD)
-# ---------------------------------------------------------
-Add-Log "Dang xoa file tam (Temp)..."
+# 3. CHẠY HIỆU ỨNG VÀ DỌN DẸP THỰC TẾ
+Write-Host "`n       .───────────────.       " -ForegroundColor Cyan
+Write-Host "       │  ^   ^  │       " -ForegroundColor Cyan
+Write-Host "       '───────────────'       " -ForegroundColor Cyan
+Write-Host "        CYBER-CLEANER v3.0`n" -ForegroundColor Yellow
+
+Write-Hacker "[-] Ket noi den he thong loi... THANH CONG." "DarkGray"
+Start-Sleep -Milliseconds 300
+
+Write-Hacker "[-] Dang quet file tam (Temp)..." "Cyan"
 Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
 
-Add-Log "Dang xoa Prefetch (Tang toc do khoi dong phan mem)..."
-Remove-Item -Path "C:\Windows\Prefetch\*" -Recurse -Force -ErrorAction SilentlyContinue
-
-Add-Log "Dang don sach Thung rac (Recycle Bin)..."
+Write-Hacker "[-] Dang tieu huy Thung rac..." "Cyan"
 Clear-RecycleBin -Force -ErrorAction SilentlyContinue
 
-Add-Log "Dang xoa Cache Windows Update (Giai phong bo nho)..."
-Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "C:\Windows\SoftwareDistribution\Download\*" -Recurse -Force -ErrorAction SilentlyContinue
-Start-Service -Name wuauserv -ErrorAction SilentlyContinue
-
-# ---------------------------------------------------------
-# 2. TỐI ƯU HIỆU NĂNG & ĐIỆN NĂNG (CPU/RAM)
-# ---------------------------------------------------------
-Add-Log "Dang tat Ngu dong (Hibernation) de xoa file hiberfil.sys..."
-powercfg -h off
-
-Add-Log "Dang bat che do Hieu nang cao (High Performance)..."
+Write-Hacker "[-] Ep xung hieu nang & Toi uu Registry..." "Cyan"
+Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Value 0
 powercfg -setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
 
-# ---------------------------------------------------------
-# 3. TỐI ƯU REGISTRY 
-# ---------------------------------------------------------
-Add-Log "Dang toi uu Registry (Giam do tre Menu, tu dong nha RAM)..."
-Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Value 0
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" -Name "AlwaysUnloadDLL" -Value 1 -ErrorAction SilentlyContinue
-
-# ---------------------------------------------------------
-# 4. TỐI ƯU MẠNG
-# ---------------------------------------------------------
-Add-Log "Dang Flush DNS Cache (Giam lag ket noi mang)..."
-ipconfig /flushdns | Out-Null
-
-# ---------------------------------------------------------
-# 5. DỌN DẸP SÂU WINSXS (Làm cuối cùng vì hơi lâu)
-# ---------------------------------------------------------
-Add-Log "Dang don dep WinSxS (Buoc nay co the mat 1-2 phut)..."
+Write-Hacker "[-] Giai phong khong gian WinSxS (Vui long doi)..." "Yellow"
 dism /online /cleanup-image /startcomponentcleanup /resetbase | Out-Null
 
-# ---------------------------------------------------------
-# KẾT THÚC & HIỂN THỊ LOG
-# ---------------------------------------------------------
-Write-Host "`n=================================================" -ForegroundColor Cyan
-Write-Host "           TONG KET CONG VIEC DA LAM             " -ForegroundColor Green
-Write-Host "=================================================" -ForegroundColor Cyan
-foreach ($item in $log) { Write-Host $item -ForegroundColor White }
+# 4. HOÀN TẤT & BÁO CÁO CỰC NGẦU
+Write-Host "`n"
+Write-Hacker "[=========================================]" "Green"
+Write-Hacker "[+] TOI UU HOA HOAN TAT! HE THONG DA SACH." "Green"
+Write-Hacker "[=========================================]" "Green"
 
-Write-Host "`n[HOAN TAT] Nhan phim bat ky de thoat..." -ForegroundColor Yellow
+[System.Console]::Beep(1000, 100)
+[System.Console]::Beep(1200, 100)
+[System.Console]::Beep(1500, 300)
+
+Write-Host "`nNhan phim bat ky de rut lui..." -ForegroundColor DarkGray
+# Bật lại con trỏ chuột trước khi thoát
+[console]::CursorVisible = $true
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
