@@ -15,119 +15,128 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 }
 
 $host.UI.RawUI.WindowTitle = "CYBER-CLEANER: AI Module"
-# Giấu con trỏ chuột nhấp nháy đi để màn hình trông giống màn OLED thực thụ
 [console]::CursorVisible = $false
 Clear-Host
 
+# =========================================================
+# CẤU HÌNH WEB API ĐỂ NHẬN LOG (THAY URL WEBSITE CỦA BẠN VÀO ĐÂY)
+# =========================================================
+$WebAPI = "http://localhost/cyber-cleaner/api.php" 
+
+function Send-LogWeb {
+    param(
+        [string]$Text,
+        [string]$Status = "info"
+    )
+    
+    # Hiển thị song song trên Console để debug nếu cần
+    if ($Status -eq "success") {
+        Write-Host $Text -ForegroundColor Green
+    } elseif ($Status -eq "warning") {
+        Write-Host $Text -ForegroundColor Yellow
+    } else {
+        Write-Host $Text -ForegroundColor Gray
+    }
+
+    # Đóng gói dữ liệu log đẩy lên Web cá nhân
+    $Body = @{
+        text = $Text
+        status = $Status
+        time = (Get-Date -Format "HH:mm:ss")
+    } | ConvertTo-Json -Compress
+
+    try {
+        Invoke-RestMethod -Uri $WebAPI -Method Post -Body $Body -ContentType "application/json; charset=utf-8" -TimeoutSec 2 -ErrorAction SilentlyContinue
+    } catch {
+        # Bỏ qua nếu website không phản hồi để tiến trình dọn dẹp không bị ngắt
+    }
+}
+
 # 1. HIỆU ỨNG MÀN HÌNH OLED ESP32 (ANIMATION ĐÔI MẮT)
 $eyeFrames = @(
-    "  O   O  ", # Nhìn thẳng
-    "  -   -  ", # Chớp mắt
-    "  O   O  ", # Nhìn thẳng
-    " O   O   ", # Nhìn sang trái
-    "  O   O  ", # Nhìn thẳng
-    "   O   O ", # Nhìn sang phải
-    "  O   O  ", # Nhìn thẳng
-    "  -   -  ", # Chớp mắt
-    "  ^   ^  "  # Vui vẻ (Sẵn sàng làm việc)
+    "  O   O  ", 
+    "  -   -  ", 
+    "  O   O  ", 
+    " O   O   ", 
+    "  O   O  ", 
+    "   O   O ", 
+    "  O   O  ", 
+    "  -   -  ", 
+    "  ^   ^  "  
 )
 
 Write-Host "`n"
 foreach ($frame in $eyeFrames) {
-    # Đưa con trỏ về cùng một vị trí để vẽ đè lên (tạo chuyển động)
     [console]::SetCursorPosition(0, 2)
     Write-Host "       .───────────────.       " -ForegroundColor Cyan
     Write-Host "       │$frame│       " -ForegroundColor Cyan
     Write-Host "       '───────────────'       " -ForegroundColor Cyan
     Write-Host "    [ Đang khởi động AI Core... ]" -ForegroundColor DarkGray
     
-    # Phát tiếng click nhẹ nhàng cho mỗi khung hình
     [System.Console]::Beep(500, 5)
     Start-Sleep -Milliseconds 300
 }
 Start-Sleep -Milliseconds 2
-
-# Xóa màn hình boot để chuyển sang giao diện dọn dẹp
 Clear-Host
 
-# 2. HÀM TẠO HIỆU ỨNG GÕ CHỮ KIỂU HACKER KÈM ÂM THANH
-function Write-Hacker {
-    param(
-        [string]$Text, 
-        [string]$Color = "Green"
-    )
-    # In nguyên cả dòng chữ ra luôn, không lặp từng ký tự nữa nên tốc độ là tức thì
-    Write-Host $Text -ForegroundColor $Color
-    [System.Console]::Beep(500, 30) # Kêu một tiếng tít ngắn báo hiệu dòng chữ xuất hiện
-}
-
-# 3. CHẠY HIỆU ỨNG VÀ DỌN DẸP THỰC TẾ CHI TIẾT
+# 2. CHẠY HIỆU ỨNG VÀ DỌN DẸP THỰC TẾ CHI TIẾT
 Write-Host "`n       .───────────────.       " -ForegroundColor Cyan
 Write-Host "       │  ^   ^  │       " -ForegroundColor Cyan
 Write-Host "       '───────────────'       " -ForegroundColor Cyan
 Write-Host "         CYBER-CLEANER v3.5`n" -ForegroundColor Yellow
 
-Write-Hacker "[-] Ket noi den he thong loi... THANH CONG." "DarkGray"
+Send-LogWeb "[-] Ket noi den he thong loi... THANH CONG." "info"
 Start-Sleep -Milliseconds 200
 
 # Hàm tối ưu xóa file nhanh và hiển thị chi tiết
 function Clean-Folder-Detailed ($FolderPath) {
     if (Test-Path $FolderPath) {
-        Write-Host "[*] Dang quet: $FolderPath" -ForegroundColor Yellow
-        # Lấy toàn bộ file và thư mục con bên trong
+        Send-LogWeb "[*] Dang quet: $FolderPath" "warning"
         $files = Get-ChildItem -Path $FolderPath -Recurse -ErrorAction SilentlyContinue
         
         foreach ($file in $files) {
-            # Hiển thị tên file đang xử lý ra màn hình theo thời gian thực
-            Write-Host " -> DELETING: $($file.FullName)" -ForegroundColor DarkGray
-            
-            # Xóa file/thư mục ngay lập tức
+            # Bắn log chi tiết tên từng file đang xóa lên Web
+            Send-LogWeb " -> DELETING: $($file.FullName)" "info"
             Remove-Item -Path $file.FullName -Force -Recurse -ErrorAction SilentlyContinue
         }
     }
 }
 
-Write-Host "`n[!] TIEN HANH XOA TAP TIN TAM THOI:" -ForegroundColor Cyan
+Send-LogWeb "`n[!] TIEN HANH XOA TAP TIN TAM THOI:" "warning"
 Clean-Folder-Detailed -FolderPath "$env:TEMP\*"
 Clean-Folder-Detailed -FolderPath "C:\Windows\Temp\*"
 
-Write-Host "`n[!] TIEN HANH TIEU HUY THUNG RAC:" -ForegroundColor Cyan
-# Thùng rác Windows có cơ chế quản lý riêng, lệnh này tự tối ưu rất nhanh
+Send-LogWeb "`n[!] TIEN HANH TIEU HUY THUNG RAC:" "warning"
 Clear-RecycleBin -Force -ErrorAction SilentlyContinue
-Write-Host " -> Thung rac da duoc don sach se!" -ForegroundColor Green
+Send-LogWeb " -> Thung rac da duoc don sach se!" "success"
 
-Write-Host "`n[!] TOI UU HE THONG:" -ForegroundColor Cyan
-Write-Hacker "[-] Ep xung hieu nang & Toi uu Registry..." "Cyan"
+Send-LogWeb "`n[!] TOI UU HE THONG:" "warning"
+Send-LogWeb "[-] Ep xung hieu nang & Toi uu Registry..." "info"
 Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Value 0
 powercfg -setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
 
-Write-Hacker "[-] Giai phong khong gian WinSxS (Vui long doi)..." "Yellow"
+Send-LogWeb "[-] Giai phong khong gian WinSxS (Vui long doi)..." "info"
 dism /online /cleanup-image /startcomponentcleanup /resetbase | Out-Null
 
-# 4. ĐOẠN XÓA DẤU VẾT LỊCH SỬ HỘP THOẠI RUN (ĐƯỢC ĐƯA LÊN TRƯỚC)
-Write-Host "`n[!] Dang xoa dau vet lich su hop thoai Run..." -ForegroundColor Cyan
+# 3. ĐOẠN XÓA DẤU VẾT LỊCH SỬ HỘP THOẠI RUN
+Send-LogWeb "`n[!] Dang xoa dau vet lich su hop thoai Run..." "warning"
 
-# Xóa sạch các giá trị lịch sử trong Registry
+# Thực hiện xóa sạch Registry trước khi can thiệp Explorer
 Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU" -Name * -ErrorAction SilentlyContinue
 Remove-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU\*" -Force -ErrorAction SilentlyContinue
 
-# Ép Windows Explorer khởi động lại để áp dụng thay đổi ngay lập tức
-Write-Host " -> Dang lam moi he thong (Man hinh se nhay nhe mot cai)..." -ForegroundColor Yellow
+Send-LogWeb " -> Dang lam moi he thong de xoa lich su RunMRU..." "info"
 Stop-Process -Name explorer -Force
 
-Write-Host " -> Da xoa sach lich su RunMRU! Khong de lai dau vet." -ForegroundColor Green
-
-# 5. HOÀN TẤT & BÁO CÁO CỰC NGẦU
-Write-Host "`n"
-Write-Hacker "[=========================================]" "Green"
-Write-Hacker "[+] TOI UU HOA HOAN TAT! HE THONG DA SACH." "Green"
-Write-Hacker "[=========================================]" "Green"
+# 4. HOÀN TẤT & BÁO CÁO CỰC NGẦU LÊN WEB
+Send-LogWeb "`n[=========================================]" "success"
+Send-LogWeb "[+] TOI UU HOA HOAN TAT! HE THONG DA SACH." "success"
+Send-LogWeb "[=========================================]" "success"
 
 [System.Console]::Beep(1000, 100)
 [System.Console]::Beep(1200, 100)
 [System.Console]::Beep(1500, 300)
 
 Write-Host "`nNhan phim bat ky de rut lui..." -ForegroundColor DarkGray
-# Bật lại con trỏ chuột trước khi thoát
 [console]::CursorVisible = $true
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
