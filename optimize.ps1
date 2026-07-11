@@ -1,51 +1,75 @@
-# --- THIET LAP GIAO DIEN ---
-$host.UI.RawUI.WindowTitle = "System Maintenance - Admin Process"
-$host.UI.RawUI.BackgroundColor = "Black"
-$host.UI.RawUI.ForegroundColor = "White"
-Clear-Host
-
-# 1. Hộp thoại hỏi quyền Admin (Tạo độ tin cậy)
-Add-Type -AssemblyName System.Windows.Forms
-$result = [System.Windows.Forms.MessageBox]::Show("He thong can don dep file rac de duy tri toc do. Ban cho phep tiep tuc?", "System Optimizer", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Information)
-
-if ($result -eq 'No') { exit }
-
-# 2. Nâng quyền Admin
+# Bắt buộc chạy Admin
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
     exit
 }
 
-# 3. Giao diện thực thi (Trông như phần mềm chuyên nghiệp)
-Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "                SYSTEM MAINTENANCE RUNNING                " -ForegroundColor Yellow
-Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host ""
+$host.UI.RawUI.WindowTitle = "System Optimization Log - Admin Process"
+Clear-Host
+Write-Host "=================================================" -ForegroundColor Cyan
+Write-Host "      HE THONG DANG DON DEP VA TOI UU PRO        " -ForegroundColor Yellow
+Write-Host "=================================================" -ForegroundColor Cyan
 
-function Step-Log($message) {
-    Write-Host "[*] $message..." -ForegroundColor Green
-    Start-Sleep -Milliseconds 800
+$log = New-Object System.Collections.Generic.List[string]
+
+function Add-Log($msg) {
+    Write-Host "[*] $msg" -ForegroundColor Cyan
+    $log.Add("[$(Get-Date -Format 'HH:mm:ss')] $msg")
 }
 
-Step-Log "Dang quet file tam (Temp Files)"
+# ---------------------------------------------------------
+# 1. DỌN RÁC Ổ CỨNG (Giải phóng hàng GB SSD)
+# ---------------------------------------------------------
+Add-Log "Dang xoa file tam (Temp)..."
 Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
 
-Step-Log "Dang toi uu bo nho Cache Windows"
+Add-Log "Dang xoa Prefetch (Tang toc do khoi dong phan mem)..."
 Remove-Item -Path "C:\Windows\Prefetch\*" -Recurse -Force -ErrorAction SilentlyContinue
 
-Step-Log "Dang don dep WinSxS (Cleanup Image)"
-dism /online /cleanup-image /startcomponentcleanup /resetbase | Out-Null
+Add-Log "Dang don sach Thung rac (Recycle Bin)..."
+Clear-RecycleBin -Force -ErrorAction SilentlyContinue
 
-Step-Log "Toi uu hoa CPU va Registry"
-Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Value 0
+Add-Log "Dang xoa Cache Windows Update (Giai phong bo nho)..."
+Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "C:\Windows\SoftwareDistribution\Download\*" -Recurse -Force -ErrorAction SilentlyContinue
+Start-Service -Name wuauserv -ErrorAction SilentlyContinue
+
+# ---------------------------------------------------------
+# 2. TỐI ƯU HIỆU NĂNG & ĐIỆN NĂNG (CPU/RAM)
+# ---------------------------------------------------------
+Add-Log "Dang tat Ngu dong (Hibernation) de xoa file hiberfil.sys..."
+powercfg -h off
+
+Add-Log "Dang bat che do Hieu nang cao (High Performance)..."
 powercfg -setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
 
-Step-Log "Flush DNS Cache"
+# ---------------------------------------------------------
+# 3. TỐI ƯU REGISTRY 
+# ---------------------------------------------------------
+Add-Log "Dang toi uu Registry (Giam do tre Menu, tu dong nha RAM)..."
+Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Value 0
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" -Name "AlwaysUnloadDLL" -Value 1 -ErrorAction SilentlyContinue
+
+# ---------------------------------------------------------
+# 4. TỐI ƯU MẠNG
+# ---------------------------------------------------------
+Add-Log "Dang Flush DNS Cache (Giam lag ket noi mang)..."
 ipconfig /flushdns | Out-Null
 
-Write-Host ""
-Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "               DON DEP HOAN TAT - HE THONG OK             " -ForegroundColor Yellow
-Write-Host "==========================================================" -ForegroundColor Cyan
-Start-Sleep -Seconds 2
+# ---------------------------------------------------------
+# 5. DỌN DẸP SÂU WINSXS (Làm cuối cùng vì hơi lâu)
+# ---------------------------------------------------------
+Add-Log "Dang don dep WinSxS (Buoc nay co the mat 1-2 phut)..."
+dism /online /cleanup-image /startcomponentcleanup /resetbase | Out-Null
+
+# ---------------------------------------------------------
+# KẾT THÚC & HIỂN THỊ LOG
+# ---------------------------------------------------------
+Write-Host "`n=================================================" -ForegroundColor Cyan
+Write-Host "           TONG KET CONG VIEC DA LAM             " -ForegroundColor Green
+Write-Host "=================================================" -ForegroundColor Cyan
+foreach ($item in $log) { Write-Host $item -ForegroundColor White }
+
+Write-Host "`n[HOAN TAT] Nhan phim bat ky de thoat..." -ForegroundColor Yellow
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
