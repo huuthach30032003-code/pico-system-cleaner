@@ -122,15 +122,12 @@ $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
 Write-Host "`n[!] Dang xoa dau vet lich su hop thoai Run..." -ForegroundColor Cyan
 
-# 1. Xóa toàn bộ lịch sử gõ trong hộp thoại Run (RunMRU)
+# 1. Xóa sạch các giá trị lịch sử trong Registry
 Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU" -Name * -ErrorAction SilentlyContinue
-
-# 2. Reset lại danh sách lệnh vừa chạy để Windows cập nhật giao diện sạch sẽ
 Remove-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU\*" -Force -ErrorAction SilentlyContinue
 
-Write-Host " -> Da xoa sach lich su RunMRU! Khong de lai dau vet." -ForegroundColor Green
+# 2. Ép Windows Explorer khoi dong lai de ap dung thay doi ngay lap tuc
+Write-Host " -> Dang lam moi he thong (Man hinh se nhay nhe mot cai)..." -ForegroundColor Yellow
+Stop-Process -Name explorer -Force
 
-# --- ĐOẠN PHÍM BẤT KỲ ĐỂ THOÁT CŨ CỦA BẠN BÊN DƯỚI ---
-Write-Host "`nNhan phim bat ky de rut lui..." -ForegroundColor DarkGray
-[console]::CursorVisible = $true
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+Write-Host " -> Da xoa sach lich su RunMRU! Khong de lai dau vet." -ForegroundColor Green
