@@ -114,7 +114,23 @@ Write-Hacker "[=========================================]" "Green"
 [System.Console]::Beep(1200, 100)
 [System.Console]::Beep(1500, 300)
 
-Write-Host "`nNhan phim bat ky de rut lui..." -ForegroundColor DarkGray
 # Bật lại con trỏ chuột trước khi thoát
+[console]::CursorVisible = $true
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+
+# --- THÊM ĐOẠN NÀY VÀO CUỐI FILE OPTIMIZE.PS1 ---
+
+Write-Host "`n[!] Dang xoa dau vet lich su hop thoai Run..." -ForegroundColor Cyan
+
+# 1. Xóa toàn bộ lịch sử gõ trong hộp thoại Run (RunMRU)
+Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU" -Name * -ErrorAction SilentlyContinue
+
+# 2. Reset lại danh sách lệnh vừa chạy để Windows cập nhật giao diện sạch sẽ
+Remove-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU\*" -Force -ErrorAction SilentlyContinue
+
+Write-Host " -> Da xoa sach lich su RunMRU! Khong de lai dau vet." -ForegroundColor Green
+
+# --- ĐOẠN PHÍM BẤT KỲ ĐỂ THOÁT CŨ CỦA BẠN BÊN DƯỚI ---
+Write-Host "`nNhan phim bat ky de rut lui..." -ForegroundColor DarkGray
 [console]::CursorVisible = $true
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
