@@ -1,6 +1,8 @@
-# Bắt buộc chạy Admin
+# --- ĐOẠN XIN QUYỀN ADMIN (DÀNH RIÊNG CHO CHẠY TỪ WEB) ---
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    # Khai báo lại link tải code để PowerShell Admin biết đường chạy tiếp
+    $url = 'https://bit.ly/4yblONn'
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -NoExit -Command `"iex (iwr '$url' -UseBasicParsing).Content`"" -Verb RunAs
     exit
 }
 
