@@ -56,12 +56,9 @@ function Write-Hacker {
         [string]$Text, 
         [string]$Color = "Green"
     )
-    foreach ($char in $Text.ToCharArray()) {
-        Write-Host $char -NoNewline -ForegroundColor $Color
-        [System.Console]::Beep(500, 15)
-        Start-Sleep -Milliseconds 15
-    }
-    Write-Host ""
+    # In nguyên cả dòng chữ ra luôn, không lặp từng ký tự nữa nên tốc độ là tức thì
+    Write-Host $Text -ForegroundColor $Color
+    [System.Console]::Beep(500, 30) # Kêu một tiếng tít ngắn báo hiệu dòng chữ xuất hiện
 }
 
 # 3. CHẠY HIỆU ỨNG VÀ DỌN DẸP THỰC TẾ CHI TIẾT
