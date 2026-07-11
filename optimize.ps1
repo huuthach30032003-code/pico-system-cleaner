@@ -1,11 +1,16 @@
-# --- ĐOẠN XIN QUYỀN ADMIN ---
+# --- ĐOẠN XIN QUYỀN ADMIN CHUẨN ENCODED (CHỐNG ĐỨNG IM) ---
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     $url = 'https://raw.githubusercontent.com/huuthach30032003-code/pico-system-cleaner/refs/heads/main/optimize.ps1'
     
-    # Thêm dấu & trước ngoặc nhọn để ép Windows CHẠY lệnh thay vì chỉ in ra
-    $cmd = "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex (iwr '$url' -UseBasicParsing).Content }"
+    # Đoạn lệnh tải sạch sẽ
+    $rawCmd = "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex (iwr '$url' -UseBasicParsing).Content"
     
-    Start-Process powershell.exe -ArgumentList "-NoP -Exec Bypass -NoExit -Command `"$cmd`"" -Verb RunAs
+    # Chuyển lệnh thành Base64 để Windows truyền đi một cách an toàn tuyệt đối
+    $bytes = [System.Text.Encoding]::Unicode.GetBytes($rawCmd)
+    $encodedCmd = [Convert]::ToBase64String($bytes)
+    
+    # Gọi PowerShell Admin và ép thực thi lệnh mã hóa
+    Start-Process powershell.exe -ArgumentList "-NoP", "-Exec", "Bypass", "-NoExit", "-EncodedCommand", $encodedCmd -Verb RunAs
     exit
 }
 
